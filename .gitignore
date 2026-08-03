@@ -11,10 +11,10 @@
 !.yarn/versions
 
 # environment variables
-venv
-.venv
-env
-.env
+venv/
+.venv/
+env/
+.env/
 
 
 # testing

@@ -10,12 +10,16 @@ import { searchSemanticScholar } from "./semanticScholar";
  */
 export async function searchPapers(
   query: string,
-  limit = 10
+  limit = 10,
 ): Promise<PaperSummary[]> {
   const [s2Results, arxivResults] = await Promise.allSettled([
     searchSemanticScholar(query, limit),
     searchArxiv(query, Math.min(limit, 5)),
   ]);
+
+  if (s2Results.status === "rejected") {
+    console.error("Semantic Scholar search failed:", s2Results.reason);
+  }
 
   const combined: PaperSummary[] = [];
   if (s2Results.status === "fulfilled") combined.push(...s2Results.value);

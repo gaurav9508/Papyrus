@@ -30,7 +30,11 @@ export const create = mutation({
   args: {
     title: v.string(),
     paperSourceId: v.string(),
-    paperSource: v.union(v.literal("arxiv"), v.literal("semanticScholar"), v.literal("upload")),
+    paperSource: v.union(
+      v.literal("arxiv"),
+      v.literal("semanticScholar"),
+      v.literal("upload"),
+    ),
     paperTitle: v.string(),
     paperAuthors: v.array(v.string()),
     paperAbstract: v.string(),
@@ -54,14 +58,15 @@ export const setStatus = mutation({
       v.literal("pending"),
       v.literal("generating"),
       v.literal("ready"),
-      v.literal("failed")
+      v.literal("failed"),
     ),
     errorMessage: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const userId = await requireUserId(ctx);
     const session = await ctx.db.get(args.sessionId);
-    if (!session || session.userId !== userId) throw new Error("Session not found.");
+    if (!session || session.userId !== userId)
+      throw new Error("Session not found.");
     await ctx.db.patch(args.sessionId, {
       status: args.status,
       errorMessage: args.errorMessage,
@@ -74,7 +79,8 @@ export const remove = mutation({
   handler: async (ctx, args) => {
     const userId = await requireUserId(ctx);
     const session = await ctx.db.get(args.sessionId);
-    if (!session || session.userId !== userId) throw new Error("Session not found.");
+    if (!session || session.userId !== userId)
+      throw new Error("Session not found.");
 
     const blocks = await ctx.db
       .query("notebookBlocks")
@@ -84,3 +90,21 @@ export const remove = mutation({
     await ctx.db.delete(args.sessionId);
   },
 });
+
+// export const remove = mutation({
+//   args: { sessionId: v.id("sessions") },
+//   handler: async (ctx, args) => {
+//     const userId = await requireUserId(ctx);
+//     const session = await ctx.db.get(args.sessionId);
+//     if (!session || session.userId !== userId) {
+//       throw new Error("Not found");
+//     }
+//     // clean up child notebookBlocks first
+//     const blocks = await ctx.db
+//       .query("notebookBlocks")
+//       .withIndex("by_session", (q) => q.eq("sessionId", args.sessionId))
+//       .collect();
+//     for (const b of blocks) await ctx.db.delete(b._id);
+//     await ctx.db.delete(args.sessionId);
+//   },
+// });

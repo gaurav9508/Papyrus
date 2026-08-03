@@ -20,8 +20,12 @@ function extractEntries(xml: string): string[] {
 function parseEntry(entryXml: string): PaperSummary {
   const idUrl = extractAll(entryXml, "id")[0] ?? "";
   const arxivId = idUrl.split("/abs/")[1] ?? idUrl;
-  const title = (extractAll(entryXml, "title")[0] ?? "").replace(/\s+/g, " ").trim();
-  const summary = (extractAll(entryXml, "summary")[0] ?? "").replace(/\s+/g, " ").trim();
+  const title = (extractAll(entryXml, "title")[0] ?? "")
+    .replace(/\s+/g, " ")
+    .trim();
+  const summary = (extractAll(entryXml, "summary")[0] ?? "")
+    .replace(/\s+/g, " ")
+    .trim();
   const authors = extractAll(entryXml, "author").map((a) => {
     const name = extractAll(a, "name")[0];
     return name ?? "";
@@ -42,11 +46,16 @@ function parseEntry(entryXml: string): PaperSummary {
 }
 
 /** Search arXiv's free public API for papers matching a topic. */
-export async function searchArxiv(query: string, limit = 10): Promise<PaperSummary[]> {
+export async function searchArxiv(
+  query: string,
+  limit = 10,
+): Promise<PaperSummary[]> {
   const url = new URL(BASE_URL);
-  url.searchParams.set("search_query", `all:${query}`);
+  url.searchParams.set("search_query", `all:"${query}"`);
   url.searchParams.set("start", "0");
   url.searchParams.set("max_results", String(limit));
+  url.searchParams.set("sortBy", "relevance");
+  url.searchParams.set("sortOrder", "descending");
 
   const res = await fetch(url.toString());
   if (!res.ok) {
@@ -58,7 +67,9 @@ export async function searchArxiv(query: string, limit = 10): Promise<PaperSumma
 }
 
 /** Fetch a single arXiv paper's metadata by id (used when a user pastes/selects a direct arXiv link). */
-export async function getArxivPaper(arxivId: string): Promise<PaperSummary | null> {
+export async function getArxivPaper(
+  arxivId: string,
+): Promise<PaperSummary | null> {
   const url = new URL(BASE_URL);
   url.searchParams.set("id_list", arxivId);
 

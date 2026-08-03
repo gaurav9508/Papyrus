@@ -39,18 +39,26 @@ function mapToPaperSummary(p: S2Paper): PaperSummary {
 /** Search Semantic Scholar's free public API for papers matching a topic. */
 export async function searchSemanticScholar(
   query: string,
-  limit = 10
+  limit = 10,
 ): Promise<PaperSummary[]> {
   const url = new URL(`${BASE_URL}/paper/search`);
   url.searchParams.set("query", query);
   url.searchParams.set("limit", String(limit));
   url.searchParams.set("fields", FIELDS);
 
-  const res = await fetch(url.toString(), {
-    headers: { Accept: "application/json" },
-    // Semantic Scholar's free tier is unauthenticated but rate-limited; cache briefly.
-    next: { revalidate: 300 },
-  });
+  const fetchOnce = () =>
+    fetch(url.toString(), {
+      headers: { Accept: "application/json" },
+      next: { revalidate: 300 },
+    });
+
+  let res = await fetchOnce();
+
+  if (res.status === 429) {
+    // Free tier is a shared global pool — a single short retry often clears it.
+    await new Promise((r) => setTimeout(r, 1500));
+    res = await fetchOnce();
+  }
 
   if (!res.ok) {
     throw new Error(`Semantic Scholar search failed: ${res.status}`);

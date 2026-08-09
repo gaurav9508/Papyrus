@@ -4,6 +4,8 @@
  * not on Gemini specifically — swapping providers later means editing only this file.
  */
 
+import { jsonrepair } from "jsonrepair";
+
 const MODEL = "gemini-3.6-flash";
 const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
 
@@ -41,6 +43,7 @@ export async function generateStructuredJson<T>(prompt: string): Promise<T> {
       generationConfig: {
         temperature: 0.3,
         responseMimeType: "application/json",
+        maxOutputTokens: 16384,
       },
     }),
   });
@@ -60,7 +63,12 @@ export async function generateStructuredJson<T>(prompt: string): Promise<T> {
   try {
     return JSON.parse(cleaned) as T;
   } catch {
-    throw new Error("Failed to parse Gemini response as JSON.");
+    try {
+      return JSON.parse(jsonrepair(cleaned)) as T;
+    } catch {
+      console.error("Gemini raw response that failed to parse:\n", text);
+      throw new Error("Failed to parse Gemini response as JSON.");
+    }
   }
 }
 
@@ -77,6 +85,7 @@ export async function embedTexts(texts: string[]): Promise<number[][]> {
         model: `models/${EMBEDDING_MODEL}`,
         content: { parts: [{ text }] },
         outputDimensionality: EMBEDDING_DIMENSIONS,
+        taskType: "RETRIEVAL_DOCUMENT",
       })),
     }),
   });
@@ -97,7 +106,33 @@ export async function embedTexts(texts: string[]): Promise<number[][]> {
 
 /** Embed a single query (e.g. a chat question) for vector search. */
 export async function embedQuery(text: string): Promise<number[]> {
-  const [vector] = await embedTexts([text]);
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) throw new Error("GEMINI_API_KEY is not set in the environment.");
+
+  const res = await fetch(`${EMBED_URL}?key=${apiKey}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      requests: [
+        {
+          model: `models/${EMBEDDING_MODEL}`,
+          content: { parts: [{ text }] },
+          outputDimensionality: EMBEDDING_DIMENSIONS,
+          taskType: "RETRIEVAL_QUERY",
+        },
+      ],
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error(
+      `Gemini embedding error (${res.status}): ${await res.text()}`,
+    );
+  }
+
+  const data = (await res.json()) as GeminiEmbedResponse;
+  const vector = data.embeddings?.[0]?.values;
+  if (!vector) throw new Error("Gemini embedding response missing vector.");
   return vector;
 }
 

@@ -5,6 +5,7 @@ export const paperChunkValidator = v.object({
   _id: v.id("paperChunks"),
   _creationTime: v.number(),
   sessionId: v.id("sessions"),
+  fileId: v.optional(v.id("paperFiles")),
   chunkIndex: v.number(),
   text: v.string(),
   embedding: v.array(v.float64()),

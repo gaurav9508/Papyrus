@@ -8,6 +8,7 @@ import type { Doc } from "./_generated/dataModel";
 export const insertMany = mutation({
   args: {
     sessionId: v.id("sessions"),
+    fileId: v.optional(v.id("paperFiles")),
     chunks: v.array(
       v.object({
         chunkIndex: v.number(),
@@ -23,6 +24,7 @@ export const insertMany = mutation({
     for (const chunk of args.chunks) {
       await ctx.db.insert("paperChunks", {
         sessionId: args.sessionId,
+        fileId: args.fileId,
         ...chunk,
       });
     }

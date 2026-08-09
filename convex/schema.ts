@@ -55,13 +55,22 @@ export default defineSchema({
   }).index("by_query", ["query"]),
 
   // Chunks of paper text with embeddings, for RAG-based notebook chat.
+  paperFiles: defineTable({
+    sessionId: v.id("sessions"),
+    storageId: v.id("_storage"),
+    filename: v.string(),
+    contentType: v.optional(v.string()),
+  }).index("by_session", ["sessionId"]),
+
   paperChunks: defineTable({
     sessionId: v.id("sessions"),
+    fileId: v.optional(v.id("paperFiles")),
     chunkIndex: v.number(),
     text: v.string(),
     embedding: v.array(v.float64()),
   })
     .index("by_session", ["sessionId"])
+    .index("by_file", ["fileId"])
     .vectorIndex("by_embedding", {
       vectorField: "embedding",
       dimensions: 768,

@@ -9,12 +9,14 @@ export async function indexPaperForChat(
   convex: ConvexHttpClient,
   sessionId: Id<"sessions">,
   fullText: string,
+  fileId?: Id<"paperFiles">,
 ): Promise<void> {
   const chunks = chunkText(fullText);
   if (chunks.length === 0) return;
   const embeddings = await embedTexts(chunks);
   await convex.mutation(api.chunks.insertMany, {
     sessionId,
+    fileId,
     chunks: chunks.map((text, i) => ({
       chunkIndex: i,
       text,

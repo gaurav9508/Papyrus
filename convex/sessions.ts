@@ -91,20 +91,10 @@ export const remove = mutation({
   },
 });
 
-// export const remove = mutation({
-//   args: { sessionId: v.id("sessions") },
-//   handler: async (ctx, args) => {
-//     const userId = await requireUserId(ctx);
-//     const session = await ctx.db.get(args.sessionId);
-//     if (!session || session.userId !== userId) {
-//       throw new Error("Not found");
-//     }
-//     // clean up child notebookBlocks first
-//     const blocks = await ctx.db
-//       .query("notebookBlocks")
-//       .withIndex("by_session", (q) => q.eq("sessionId", args.sessionId))
-//       .collect();
-//     for (const b of blocks) await ctx.db.delete(b._id);
-//     await ctx.db.delete(args.sessionId);
+// export const debugAuth = query({
+//   args: {},
+//   handler: async (ctx) => {
+//     const identity = await ctx.auth.getUserIdentity();
+//     return identity ?? "NO IDENTITY";
 //   },
 // });

@@ -5,6 +5,7 @@ import { useQuery } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
 import type { Id } from "../../../../../convex/_generated/dataModel";
 import { NotebookViewer } from "@/components/notebook/NotebookViewer";
+import { NotebookChatPanel } from "@/components/notebook/NotebookChatPanel";
 import { Loader2, XCircle } from "lucide-react";
 
 export default function SessionPage() {
@@ -14,7 +15,7 @@ export default function SessionPage() {
   const session = useQuery(api.sessions.get, { sessionId });
   const blocks = useQuery(
     api.notebooks.listForSession,
-    session?.status === "ready" ? { sessionId } : "skip"
+    session?.status === "ready" ? { sessionId } : "skip",
   );
 
   function handleDownload() {
@@ -32,7 +33,9 @@ export default function SessionPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-semibold text-stone-900">{session.title}</h1>
+        <h1 className="text-2xl font-semibold text-stone-900">
+          {session.title}
+        </h1>
         {session.paperExternalUrl && (
           <a
             href={session.paperExternalUrl}
@@ -57,13 +60,23 @@ export default function SessionPage() {
           <XCircle size={20} className="mt-0.5 shrink-0" />
           <div>
             <p className="font-medium">Notebook generation failed.</p>
-            {session.errorMessage && <p className="text-sm">{session.errorMessage}</p>}
+            {session.errorMessage && (
+              <p className="text-sm">{session.errorMessage}</p>
+            )}
           </div>
         </div>
       )}
 
       {session.status === "ready" && blocks && (
-        <NotebookViewer title={session.title} blocks={blocks} onDownload={handleDownload} />
+        <NotebookViewer
+          title={session.title}
+          blocks={blocks}
+          onDownload={handleDownload}
+        />
+      )}
+
+      {session.status === "ready" && (
+        <NotebookChatPanel sessionId={sessionId} />
       )}
     </div>
   );

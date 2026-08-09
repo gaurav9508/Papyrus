@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "convex/react";
+import { useConvexAuth, useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { SessionListItem } from "@/components/notebook/SessionListItem";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,14 @@ import Link from "next/link";
 import { Search, Upload } from "lucide-react";
 
 export default function DashboardPage() {
-  const sessions = useQuery(api.sessions.listMine);
+  const { isAuthenticated } = useConvexAuth();
+  const sessions = useQuery(
+    api.sessions.listMine,
+    isAuthenticated ? {} : "skip",
+  );
+
+  // const debug = useQuery(api.sessions.debugAuth);
+  // console.log("auth debug:", debug);
 
   return (
     <div className="flex flex-col gap-6">

@@ -18,13 +18,17 @@ export default defineSchema({
       v.literal("pending"),
       v.literal("generating"),
       v.literal("ready"),
-      v.literal("failed")
+      v.literal("failed"),
     ),
     errorMessage: v.optional(v.string()),
 
     // Denormalized paper info so we don't need a join for the common case.
     paperSourceId: v.string(),
-    paperSource: v.union(v.literal("arxiv"), v.literal("semanticScholar"), v.literal("upload")),
+    paperSource: v.union(
+      v.literal("arxiv"),
+      v.literal("semanticScholar"),
+      v.literal("upload"),
+    ),
     paperTitle: v.string(),
     paperAuthors: v.array(v.string()),
     paperAbstract: v.string(),
@@ -49,4 +53,26 @@ export default defineSchema({
     resultsJson: v.string(),
     createdAt: v.number(),
   }).index("by_query", ["query"]),
+
+  // Chunks of paper text with embeddings, for RAG-based notebook chat.
+  paperChunks: defineTable({
+    sessionId: v.id("sessions"),
+    chunkIndex: v.number(),
+    text: v.string(),
+    embedding: v.array(v.float64()),
+  })
+    .index("by_session", ["sessionId"])
+    .vectorIndex("by_embedding", {
+      vectorField: "embedding",
+      dimensions: 768,
+      filterFields: ["sessionId"],
+    }),
+
+  // Chat thread for the notebook chat panel, one per session.
+  chatMessages: defineTable({
+    sessionId: v.id("sessions"),
+    role: v.union(v.literal("user"), v.literal("assistant")),
+    content: v.string(),
+    createdAt: v.number(),
+  }).index("by_session", ["sessionId"]),
 });

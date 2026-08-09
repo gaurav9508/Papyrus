@@ -14,15 +14,10 @@ export default function DashboardPage() {
     isAuthenticated ? {} : "skip",
   );
 
-  // const debug = useQuery(api.sessions.debugAuth);
-  // console.log("auth debug:", debug);
-
   return (
-    <div className="flex flex-col gap-6">
+    <div className="mx-auto max-w-5xl px-6 py-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-stone-900">
-          Your Notebooks
-        </h1>
+        <h1 className="font-serif text-2xl text-[#e6e4dc]">Your Notebooks</h1>
         <div className="flex gap-2">
           <Link href="/search">
             <Button variant="secondary" size="sm">
@@ -39,15 +34,17 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {sessions === undefined && <p className="text-stone-500">Loading…</p>}
+      {sessions === undefined && (
+        <p className="mt-6 text-[#6a7583]">Loading…</p>
+      )}
 
       {sessions?.length === 0 && (
-        <div className="rounded-xl border border-dashed border-stone-300 p-10 text-center text-stone-500">
+        <div className="mt-6 rounded-xl border border-dashed border-[#2a3541] bg-[#12181f]/40 p-10 text-center text-[#6a7583]">
           No notebooks yet. Search for a paper or upload one to get started.
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+      <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
         {sessions?.map((s) => (
           <SessionListItem
             key={s._id}

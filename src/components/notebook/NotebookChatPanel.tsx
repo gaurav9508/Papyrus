@@ -4,28 +4,33 @@ import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Id } from "../../../convex/_generated/dataModel";
-import { MessageCircle, X, Send } from "lucide-react";
+import { FileText, Send, Sparkles, X } from "lucide-react";
+
+const SUGGESTIONS = ["What's the core method?", "What should I try first?"];
 
 export function NotebookChatPanel({
   sessionId,
+  paperTitle,
+  onClose,
 }: {
   sessionId: Id<"sessions">;
+  paperTitle: string;
+  onClose: () => void;
 }) {
-  const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const messages = useQuery(api.chatMessages.listMine, { sessionId });
 
-  const handleSend = async () => {
-    const text = input.trim();
-    if (!text || sending) return;
+  const handleSend = async (text?: string) => {
+    const message = (text ?? input).trim();
+    if (!message || sending) return;
     setInput("");
     setSending(true);
     try {
       await fetch(`/api/notebooks/${sessionId}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({ message }),
       });
     } finally {
       setSending(false);
@@ -33,77 +38,104 @@ export function NotebookChatPanel({
   };
 
   return (
-    <>
-      {!open && (
-        <button
-          onClick={() => setOpen(true)}
-          className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-stone-900 text-white shadow-lg transition-transform hover:scale-105"
-          aria-label="Open notebook chat"
-        >
-          <MessageCircle size={22} />
-        </button>
-      )}
-
-      <div
-        className={`fixed inset-y-0 right-0 z-50 flex w-full flex-col border-l border-stone-200 bg-white shadow-2xl transition-transform duration-200 md:w-1/2 ${
-          open ? "translate-x-0" : "translate-x-full"
-        }`}
-      >
-        <div className="flex items-center justify-between border-b border-stone-200 p-4">
-          <h2 className="font-semibold text-stone-900">Ask about this paper</h2>
+    <div className="flex h-full flex-col bg-[#0b0f14]">
+      <div className="flex items-start justify-between px-6 pt-6">
+        <div>
+          <p className="text-xs font-medium uppercase tracking-widest text-[#6a7583]">
+            Paper companion
+          </p>
+          <h2 className="mt-1 flex items-center gap-1.5 font-serif text-2xl text-[#e6e4dc]">
+            Ask the paper <Sparkles size={16} className="text-amber-400" />
+          </h2>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-widest text-emerald-400">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            Live
+          </span>
           <button
-            onClick={() => setOpen(false)}
+            onClick={onClose}
             aria-label="Close chat"
-            className="text-stone-500 hover:text-stone-900"
+            className="text-[#6a7583] hover:text-[#e6e4dc] md:hidden"
           >
-            <X size={20} />
+            <X size={18} />
           </button>
         </div>
+      </div>
 
-        <div className="flex-1 space-y-3 overflow-y-auto p-4">
-          {messages?.length === 0 && (
-            <p className="text-sm text-stone-400">
-              Ask a question — answers are grounded in the paper's actual
-              content.
-            </p>
-          )}
-          {messages?.map((m) => (
-            <div
-              key={m._id}
-              className={`max-w-[85%] rounded-2xl px-4 py-2 text-sm ${
-                m.role === "user"
-                  ? "ml-auto bg-stone-900 text-white"
-                  : "mr-auto bg-stone-100 text-stone-800"
-              }`}
+      <div className="mx-6 mt-4 flex items-center gap-3 rounded-lg border border-[#1e2732] bg-[#12181f] px-4 py-3">
+        <FileText size={16} className="text-[#6a7583]" />
+        <div>
+          <p className="text-sm font-medium text-[#e6e4dc]">{paperTitle}</p>
+          <p className="text-xs text-[#6a7583]">
+            Grounded in the full paper text
+          </p>
+        </div>
+      </div>
+
+      <div className="flex-1 space-y-3 overflow-y-auto px-6 py-4">
+        {messages?.length === 0 && (
+          <div className="rounded-lg bg-[#12181f] px-4 py-3 text-sm leading-relaxed text-[#b8bfc7]">
+            I'm grounded in this paper. Ask me about the method, the code, or
+            what to try next.
+          </div>
+        )}
+        {messages?.map((m) => (
+          <div
+            key={m._id}
+            className={
+              m.role === "user"
+                ? "ml-auto max-w-[85%] rounded-2xl bg-[#e6e4dc] px-4 py-2 text-sm text-[#0b0f14]"
+                : "mr-auto max-w-[85%] rounded-2xl bg-[#12181f] px-4 py-2 text-sm text-[#d8dde3]"
+            }
+          >
+            {m.content}
+          </div>
+        ))}
+        {sending && (
+          <div className="mr-auto max-w-[85%] rounded-2xl bg-[#12181f] px-4 py-2 text-sm text-[#6a7583]">
+            Thinking…
+          </div>
+        )}
+      </div>
+
+      <div className="border-t border-[#1e2732] px-6 py-4">
+        <p className="mb-2 text-[10px] uppercase tracking-widest text-[#4a5460]">
+          Try asking
+        </p>
+        <div className="mb-3 flex flex-wrap gap-2">
+          {SUGGESTIONS.map((q) => (
+            <button
+              key={q}
+              onClick={() => handleSend(q)}
+              className="rounded-full border border-[#2a3541] px-3 py-1 text-xs text-[#b8bfc7] hover:border-[#3a4854] hover:text-[#e6e4dc]"
             >
-              {m.content}
-            </div>
+              {q}
+            </button>
           ))}
-          {sending && (
-            <div className="mr-auto max-w-[85%] rounded-2xl bg-stone-100 px-4 py-2 text-sm text-stone-400">
-              Thinking…
-            </div>
-          )}
         </div>
 
-        <div className="flex gap-2 border-t border-stone-200 p-4">
+        <div className="flex items-center gap-2 rounded-lg border border-[#2a3541] bg-[#12181f] px-3 py-2">
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSend()}
-            placeholder="Ask a question…"
-            className="flex-1 rounded-lg border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400"
+            placeholder="Ask about this paper…"
+            className="flex-1 bg-transparent text-sm text-[#e6e4dc] placeholder:text-[#4a5460] focus:outline-none"
           />
           <button
-            onClick={handleSend}
+            onClick={() => handleSend()}
             disabled={sending || !input.trim()}
-            className="rounded-lg bg-stone-900 px-3 py-2 text-white disabled:opacity-40"
+            className="rounded-md bg-amber-400 p-1.5 text-[#0b0f14] disabled:opacity-30"
             aria-label="Send message"
           >
-            <Send size={16} />
+            <Send size={14} />
           </button>
         </div>
+        <p className="mt-2 text-[10px] text-[#4a5460]">
+          ⏎ Enter to send · answers cite the paper
+        </p>
       </div>
-    </>
+    </div>
   );
 }

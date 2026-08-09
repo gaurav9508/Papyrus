@@ -20,22 +20,27 @@ export function PaperCard({ paper, onGenerate, isGenerating }: PaperCardProps) {
         {paper.year ? ` · ${paper.year}` : ""}
         {paper.venue ? ` · ${paper.venue}` : ""}
       </CardDescription>
-      <p className="text-sm text-stone-600">{truncate(paper.abstract, 280)}</p>
+      <p className="text-sm text-[#b8bfc7]">{truncate(paper.abstract, 280)}</p>
 
       <div className="mt-2 flex items-center gap-3">
-        <Button size="sm" onClick={() => onGenerate(paper)} disabled={isGenerating || !paper.pdfUrl}>
+        <Button
+          size="sm"
+          onClick={() => onGenerate(paper)}
+          disabled={isGenerating || !paper.pdfUrl}
+        >
           {isGenerating ? "Generating…" : "Generate Notebook"}
         </Button>
+
         <a
           href={paper.externalUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-sm text-stone-500 hover:underline"
+          className="text-sm text-[#8892a0] hover:text-[#e6e4dc] hover:underline"
         >
           View source ↗
         </a>
         {!paper.pdfUrl && (
-          <span className="text-xs text-stone-400">No PDF available</span>
+          <span className="text-xs text-[#4a5460]">No PDF available</span>
         )}
       </div>
     </Card>

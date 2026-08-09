@@ -20,10 +20,10 @@ interface SessionListItemProps {
 }
 
 const statusStyles: Record<Status, string> = {
-  pending: "bg-stone-100 text-stone-600",
-  generating: "bg-amber-100 text-amber-700",
-  ready: "bg-emerald-100 text-emerald-700",
-  failed: "bg-red-100 text-red-700",
+  pending: "bg-[#1e2732] text-[#8892a0]",
+  generating: "bg-amber-400/10 text-amber-400",
+  ready: "bg-emerald-400/10 text-emerald-400",
+  failed: "bg-red-400/10 text-red-400",
 };
 
 /** One square card in the dashboard's session ("chat") grid. */
@@ -53,13 +53,13 @@ export function SessionListItem({
   return (
     <Card
       onClick={() => router.push(`/sessions/${id}`)}
-      className="group relative flex aspect-square cursor-pointer flex-col justify-between rounded-2xl p-4 transition-all duration-150 hover:-translate-y-0.5 hover:shadow-lg"
+      className="group relative flex aspect-square cursor-pointer flex-col justify-between rounded-2xl p-4 transition-all duration-150 hover:-translate-y-0.5 hover:border-[#3a4854]"
     >
       <button
         onClick={handleDelete}
         disabled={deleting}
         aria-label="Delete notebook"
-        className="absolute right-3 top-3 rounded-full p-1.5 text-stone-400 opacity-0 transition-opacity hover:bg-red-50 hover:text-red-600 group-hover:opacity-100 disabled:opacity-50"
+        className="absolute right-3 top-3 rounded-full p-1.5 text-[#4a5460] opacity-0 transition-opacity hover:bg-red-400/10 hover:text-red-400 group-hover:opacity-100 disabled:opacity-50"
       >
         <Trash2 size={16} />
       </button>
@@ -75,7 +75,7 @@ export function SessionListItem({
         >
           {status}
         </span>
-        <span className="text-xs text-stone-400">{formatDate(updatedAt)}</span>
+        <span className="text-xs text-[#4a5460]">{formatDate(updatedAt)}</span>
       </div>
     </Card>
   );

@@ -10,8 +10,11 @@ const NAV_LINKS = [
 
 export function Navbar() {
   return (
-    <nav className="flex items-center justify-between border-b border-stone-200 bg-white px-6 py-3">
-      <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-stone-900">
+    <nav className="flex items-center justify-between border-b border-[#1e2732] bg-[#0b0f14] px-6 py-3">
+      <Link
+        href="/dashboard"
+        className="flex items-center gap-2 font-semibold text-[#e6e4dc]"
+      >
         <BookOpen size={20} />
         Papyrus
       </Link>
@@ -21,7 +24,7 @@ export function Navbar() {
           <Link
             key={href}
             href={href}
-            className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm text-stone-600 hover:bg-stone-100"
+            className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm text-[#8892a0] transition-colors hover:bg-[#12181f] hover:text-[#e6e4dc]"
           >
             <Icon size={16} />
             {label}
@@ -29,7 +32,7 @@ export function Navbar() {
         ))}
       </div>
 
-      <UserButton afterSignOutUrl="/" />
+      <UserButton />
     </nav>
   );
 }

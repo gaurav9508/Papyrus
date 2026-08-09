@@ -66,27 +66,30 @@ export default function UploadPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-semibold text-stone-900">Upload a Paper</h1>
-      <p className="text-stone-600">
-        Upload a paper PDF directly and Papyrus will generate a step-by-step implementation notebook from it.
+    <div className="mx-auto max-w-5xl px-6 py-8">
+      <h1 className="font-serif text-2xl text-[#e6e4dc]">Upload a Paper</h1>
+      <p className="mt-2 text-[#8892a0]">
+        Upload a paper PDF directly and Papyrus will generate a step-by-step
+        implementation notebook from it.
       </p>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
         <div
           onClick={() => fileInputRef.current?.click()}
-          className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-stone-300 p-10 text-center hover:border-stone-400"
+          className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#2a3541] bg-[#12181f]/40 p-10 text-center transition-colors hover:border-[#3a4854]"
         >
           {file ? (
             <>
-              <FileText size={28} className="text-stone-600" />
-              <p className="font-medium text-stone-800">{file.name}</p>
-              <p className="text-xs text-stone-400">Click to choose a different file</p>
+              <FileText size={28} className="text-[#8892a0]" />
+              <p className="font-medium text-[#e6e4dc]">{file.name}</p>
+              <p className="text-xs text-[#4a5460]">
+                Click to choose a different file
+              </p>
             </>
           ) : (
             <>
-              <UploadCloud size={28} className="text-stone-400" />
-              <p className="text-stone-600">Click to select a PDF</p>
+              <UploadCloud size={28} className="text-[#4a5460]" />
+              <p className="text-[#8892a0]">Click to select a PDF</p>
             </>
           )}
           <input
@@ -99,13 +102,23 @@ export default function UploadPage() {
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-stone-700">Notebook title</label>
-          <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Optional — defaults to filename" />
+          <label className="text-sm font-medium text-[#b8bfc7]">
+            Notebook title
+          </label>
+          <Input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Optional — defaults to filename"
+          />
         </div>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-red-400">{error}</p>}
 
-        <Button type="submit" disabled={isSubmitting || !file} className="self-start">
+        <Button
+          type="submit"
+          disabled={isSubmitting || !file}
+          className="self-start"
+        >
           {isSubmitting ? "Starting generation…" : "Generate Notebook"}
         </Button>
       </form>

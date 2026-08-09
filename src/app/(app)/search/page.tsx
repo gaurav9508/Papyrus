@@ -27,7 +27,9 @@ export default function SearchPage() {
     setIsSearching(true);
     setError(null);
     try {
-      const res = await fetch(`/api/papers/search?q=${encodeURIComponent(query)}`);
+      const res = await fetch(
+        `/api/papers/search?q=${encodeURIComponent(query)}`,
+      );
       if (!res.ok) throw new Error("Search failed.");
       const data = await res.json();
       setResults(data.results);
@@ -53,8 +55,6 @@ export default function SearchPage() {
         paperPdfUrl: paper.pdfUrl,
       });
 
-      // Kick off generation in the background, then take the user to the session
-      // page immediately so they can watch its status update live.
       fetch("/api/notebooks/generate-from-url", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -69,10 +69,10 @@ export default function SearchPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-semibold text-stone-900">Search Papers</h1>
+    <div className="mx-auto max-w-5xl px-6 py-8">
+      <h1 className="font-serif text-2xl text-[#e6e4dc]">Search Papers</h1>
 
-      <form onSubmit={handleSearch} className="flex gap-2">
+      <form onSubmit={handleSearch} className="mt-6 flex gap-2">
         <Input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -84,9 +84,9 @@ export default function SearchPage() {
         </Button>
       </form>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
 
-      <div className="flex flex-col gap-4">
+      <div className="mt-6 flex flex-col gap-4">
         {results.map((paper) => (
           <PaperCard
             key={`${paper.source}-${paper.sourceId}`}
@@ -98,7 +98,9 @@ export default function SearchPage() {
       </div>
 
       {results.length === 0 && !isSearching && (
-        <p className="text-stone-400">Search for a topic to find related papers.</p>
+        <p className="mt-6 text-[#4a5460]">
+          Search for a topic to find related papers.
+        </p>
       )}
     </div>
   );

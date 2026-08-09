@@ -10,10 +10,12 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantClasses: Record<ButtonVariant, string> = {
-  primary: "bg-stone-900 text-white hover:bg-stone-700",
-  secondary: "bg-stone-100 text-stone-900 hover:bg-stone-200",
-  ghost: "bg-transparent text-stone-700 hover:bg-stone-100",
-  danger: "bg-red-600 text-white hover:bg-red-700",
+  primary: "bg-amber-400 text-[#0b0f14] hover:bg-amber-300",
+  secondary:
+    "border border-[#2a3541] bg-[#12181f] text-[#e6e4dc] hover:border-[#3a4854] hover:bg-[#161c24]",
+  ghost:
+    "bg-transparent text-[#8892a0] hover:bg-[#12181f] hover:text-[#e6e4dc]",
+  danger: "bg-red-500/90 text-white hover:bg-red-500",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
@@ -31,11 +33,11 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           "inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none",
           variantClasses[variant],
           sizeClasses[size],
-          className
+          className,
         )}
         {...props}
       />
     );
-  }
+  },
 );
 Button.displayName = "Button";

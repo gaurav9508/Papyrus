@@ -7,9 +7,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   useSyncUser();
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[#0b0f14]">
       <Navbar />
-      <div className="mx-auto max-w-5xl px-6 py-8">{children}</div>
+      {children}
     </div>
   );
 }

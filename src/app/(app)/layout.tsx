@@ -12,9 +12,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div
       className={
-        isDark
-          ? "min-h-screen bg-[#0b0f14]"
-          : "min-h-screen bg-[color:var(--color-cream)]"
+        isDark ? "min-h-screen bg-[#0b0f14]" : "min-h-screen bg-(--color-cream)"
       }
     >
       <Navbar />

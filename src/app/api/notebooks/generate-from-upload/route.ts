@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     const uploadUrl = await convex.mutation(api.files.generateUploadUrl, {});
     const uploadRes = await fetch(uploadUrl, {
       method: "POST",
-      headers: { "Content-Type": file.type || "application/pdf" },
+      headers: { "Content-Type": file.type || "application/octet-stream" },
       body: buffer,
     });
     if (!uploadRes.ok) {
@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
       externalUrl: "",
     };
 
-    const result = await generateNotebookFromUpload(paper, buffer);
+    const result = await generateNotebookFromUpload(paper, buffer, file.name);
 
     await convex.mutation(api.notebooks.saveGenerated, {
       sessionId: typedSessionId,

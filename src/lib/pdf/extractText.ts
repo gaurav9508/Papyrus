@@ -1,4 +1,5 @@
 import { PDFParse } from "pdf-parse";
+import mammoth from "mammoth";
 
 /** Max characters of paper text we send to the LLM (keeps prompts within free-tier context limits). */
 const MAX_CHARS = 40_000;
@@ -12,6 +13,38 @@ export async function extractTextFromPdf(buffer: Buffer): Promise<string> {
   } finally {
     await parser.destroy();
   }
+}
+
+/** Extract plain text from a DOCX buffer. */
+export async function extractTextFromDocx(buffer: Buffer): Promise<string> {
+  const result = await mammoth.extractRawText({ buffer });
+  return truncateForPrompt(result.value);
+}
+
+/** Extract plain text from a TXT buffer. */
+export async function extractTextFromTxt(buffer: Buffer): Promise<string> {
+  return truncateForPrompt(buffer.toString("utf-8"));
+}
+
+/**
+ * Dispatch to the correct extractor based on file extension/MIME type.
+ * Used by the upload flow, which now accepts PDF, DOCX, and TXT.
+ */
+export async function extractTextFromFile(
+  buffer: Buffer,
+  filename: string,
+  contentType?: string,
+): Promise<string> {
+  const ext = filename.toLowerCase().split(".").pop();
+
+  if (ext === "docx" || contentType?.includes("wordprocessingml")) {
+    return extractTextFromDocx(buffer);
+  }
+  if (ext === "txt" || contentType === "text/plain") {
+    return extractTextFromTxt(buffer);
+  }
+  // default: pdf
+  return extractTextFromPdf(buffer);
 }
 
 /** Fetch a PDF from a URL (e.g. arXiv) and extract its text. */

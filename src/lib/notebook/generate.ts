@@ -2,7 +2,7 @@ import type { NotebookGenerationResult, PaperSummary } from "@/lib/types";
 import { generateStructuredJson } from "@/lib/llm/gemini";
 import { buildNotebookPrompt } from "@/lib/llm/notebookPrompt";
 import {
-  extractTextFromPdf,
+  extractTextFromFile,
   extractTextFromPdfUrl,
 } from "@/lib/pdf/extractText";
 
@@ -26,12 +26,13 @@ export async function generateNotebookFromUrl(
   return generateNotebookFromText(paper, text);
 }
 
-/** Generate a step-by-step notebook from an uploaded PDF buffer. */
+/** Generate a step-by-step notebook from an uploaded file buffer (PDF, DOCX, or TXT). */
 export async function generateNotebookFromUpload(
   paper: PaperSummary,
   fileBuffer: Buffer,
+  filename: string,
 ): Promise<NotebookGenerationWithText> {
-  const text = await extractTextFromPdf(fileBuffer);
+  const text = await extractTextFromFile(fileBuffer, filename);
   return generateNotebookFromText(paper, text);
 }
 

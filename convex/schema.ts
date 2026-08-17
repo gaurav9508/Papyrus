@@ -48,6 +48,8 @@ export default defineSchema({
     type: v.union(v.literal("markdown"), v.literal("code")),
     title: v.optional(v.string()),
     content: v.string(),
+    editedByUser: v.optional(v.boolean()),
+    regenerating: v.optional(v.boolean()),
   }).index("by_session", ["sessionId"]),
 
   // Cache of recent search queries -> results, to avoid hammering free APIs.

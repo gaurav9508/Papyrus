@@ -1,6 +1,9 @@
-import { mutation, query } from "./_generated/server";
+import { mutation, query, action } from "./_generated/server";
 import { v } from "convex/values";
 import { requireUserId } from "./lib/auth";
+import { internal } from "./_generated/api";
+import { generateStructuredJson, embedQuery } from "../src/lib/llm/gemini";
+import { buildRegenBlockPrompt } from "../src/lib/llm/notebookPrompt";
 
 /** Get all cells for a session, in order — powers the in-app walkthrough viewer. */
 export const listForSession = query({
@@ -106,5 +109,115 @@ export const clearGeneratedSystem = mutation({
       .withIndex("by_session", (q) => q.eq("sessionId", args.sessionId))
       .collect();
     await Promise.all(chunks.map((c) => ctx.db.delete(c._id)));
+  },
+});
+
+export const updateBlockContent = mutation({
+  args: {
+    blockId: v.id("notebookBlocks"),
+    content: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const userId = await requireUserId(ctx);
+    const block = await ctx.db.get(args.blockId);
+    if (!block) throw new Error("Block not found.");
+    const session = await ctx.db.get(block.sessionId);
+    if (!session || session.userId !== userId)
+      throw new Error("Not authorized.");
+
+    await ctx.db.patch(args.blockId, {
+      content: args.content,
+      editedByUser: true,
+    });
+  },
+});
+
+export const regenerateBlock = action({
+  args: { blockId: v.id("notebookBlocks") },
+  handler: async (ctx, args): Promise<void> => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated.");
+    const userId = identity.subject;
+
+    const block = await ctx.runQuery(
+      internal.notebookHelpers.getBlockInternal,
+      {
+        blockId: args.blockId,
+      },
+    );
+    if (!block) throw new Error("Block not found.");
+
+    const session = await ctx.runQuery(
+      internal.notebookHelpers.getSessionInternal,
+      {
+        sessionId: block.sessionId,
+      },
+    );
+    if (!session || session.userId !== userId)
+      throw new Error("Not authorized.");
+
+    await ctx.runMutation(internal.notebookHelpers.setRegeneratingInternal, {
+      blockId: args.blockId,
+      value: true,
+    });
+
+    try {
+      const allBlocks = await ctx.runQuery(
+        internal.notebookHelpers.listBlocksInternal,
+        {
+          sessionId: block.sessionId,
+        },
+      );
+      const idx = allBlocks.findIndex((b) => b._id === args.blockId);
+      const prevBlock = idx > 0 ? allBlocks[idx - 1] : undefined;
+      const nextBlock =
+        idx < allBlocks.length - 1 ? allBlocks[idx + 1] : undefined;
+
+      const queryVector = await embedQuery(
+        `${block.title ?? ""}\n${block.content}`,
+      );
+
+      const results = await ctx.vectorSearch("paperChunks", "by_embedding", {
+        vector: queryVector,
+        limit: 6,
+        filter: (q) => q.eq("sessionId", block.sessionId),
+      });
+
+      const chunkDocs = await ctx.runQuery(internal.chunkHelpers.getByIds, {
+        ids: results.map((r) => r._id),
+      });
+      const context = chunkDocs.map((c) => c.text).join("\n\n");
+
+      const prompt = buildRegenBlockPrompt({
+        paperTitle: session.paperTitle,
+        blockType: block.type,
+        blockTitle: block.title,
+        blockContent: block.content,
+        prevBlock: prevBlock
+          ? { title: prevBlock.title, content: prevBlock.content }
+          : undefined,
+        nextBlock: nextBlock
+          ? { title: nextBlock.title, content: nextBlock.content }
+          : undefined,
+        context,
+      });
+
+      const result = await generateStructuredJson<{
+        title?: string;
+        content: string;
+      }>(prompt);
+
+      await ctx.runMutation(internal.notebookHelpers.patchBlockInternal, {
+        blockId: args.blockId,
+        content: result.content,
+        title: result.title ?? block.title,
+      });
+    } catch (err) {
+      await ctx.runMutation(internal.notebookHelpers.setRegeneratingInternal, {
+        blockId: args.blockId,
+        value: false,
+      });
+      throw err;
+    }
   },
 });

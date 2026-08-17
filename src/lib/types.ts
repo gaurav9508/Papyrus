@@ -29,6 +29,13 @@ export interface NotebookBlock {
   title?: string;
 }
 
+export interface NotebookBlockDoc extends NotebookBlock {
+  _id: string;
+  sessionId: string;
+  editedByUser?: boolean;
+  regenerating?: boolean;
+}
+
 export type SessionStatus = "pending" | "generating" | "ready" | "failed";
 
 export interface NotebookSession {

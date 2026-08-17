@@ -1,11 +1,11 @@
-import type { NotebookBlock } from "@/lib/types";
+import type { NotebookBlockDoc } from "@/lib/types";
 import { NotebookCell } from "./NotebookCell";
 import { Download } from "lucide-react";
 
 interface NotebookViewerProps {
   title: string;
   paperUrl?: string | null;
-  blocks: NotebookBlock[];
+  blocks: NotebookBlockDoc[];
   onDownload: () => void;
 }
 
@@ -64,7 +64,7 @@ export function NotebookViewer({
 
       <div className="flex flex-col gap-4 pt-8">
         {blocks.map((block, i) => (
-          <NotebookCell key={block.order} index={i} block={block} />
+          <NotebookCell key={block._id} index={i} block={block} />
         ))}
       </div>
     </div>

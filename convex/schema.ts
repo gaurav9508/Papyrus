@@ -34,9 +34,12 @@ export default defineSchema({
     paperAbstract: v.string(),
     paperExternalUrl: v.optional(v.string()),
     paperPdfUrl: v.optional(v.string()),
+    generationStartedAt: v.optional(v.number()),
+    retryCount: v.optional(v.number()),
   })
     .index("by_user", ["userId"])
-    .index("by_user_and_status", ["userId", "status"]),
+    .index("by_user_and_status", ["userId", "status"])
+    .index("by_status", ["status"]),
 
   // Ordered notebook cells belonging to a session.
   notebookBlocks: defineTable({

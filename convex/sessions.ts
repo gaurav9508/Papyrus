@@ -70,6 +70,8 @@ export const setStatus = mutation({
     await ctx.db.patch(args.sessionId, {
       status: args.status,
       errorMessage: args.errorMessage,
+      generationStartedAt:
+        args.status === "generating" ? Date.now() : session.generationStartedAt,
     });
   },
 });
@@ -98,3 +100,28 @@ export const remove = mutation({
 //     return identity ?? "NO IDENTITY";
 //   },
 // });
+
+export const setStatusSystem = mutation({
+  args: {
+    sessionId: v.id("sessions"),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("generating"),
+      v.literal("ready"),
+      v.literal("failed"),
+    ),
+    errorMessage: v.optional(v.string()),
+    secret: v.string(),
+  },
+  handler: async (ctx, args) => {
+    if (args.secret !== process.env.INTERNAL_RETRY_SECRET) {
+      throw new Error("Unauthorized.");
+    }
+    await ctx.db.patch(args.sessionId, {
+      status: args.status,
+      errorMessage: args.errorMessage,
+      generationStartedAt:
+        args.status === "generating" ? Date.now() : undefined,
+    });
+  },
+});

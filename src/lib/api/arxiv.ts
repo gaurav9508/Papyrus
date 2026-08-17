@@ -46,12 +46,17 @@ function parseEntry(entryXml: string): PaperSummary {
 }
 
 /** Search arXiv's free public API for papers matching a topic. */
-export async function searchArxiv(
-  query: string,
-  limit = 10,
+/** Escape arXiv/Lucene special characters so raw user input can't break the query syntax. */
+function escapeArxivTerm(term: string): string {
+  return term.replace(/[+\-&|!(){}[\]^"~*?:\\]/g, " ").trim();
+}
+
+async function fetchArxiv(
+  searchQuery: string,
+  limit: number,
 ): Promise<PaperSummary[]> {
   const url = new URL(BASE_URL);
-  url.searchParams.set("search_query", `all:"${query}"`);
+  url.searchParams.set("search_query", searchQuery);
   url.searchParams.set("start", "0");
   url.searchParams.set("max_results", String(limit));
   url.searchParams.set("sortBy", "relevance");
@@ -66,17 +71,21 @@ export async function searchArxiv(
   return extractEntries(xml).map(parseEntry);
 }
 
-/** Fetch a single arXiv paper's metadata by id (used when a user pastes/selects a direct arXiv link). */
-export async function getArxivPaper(
-  arxivId: string,
-): Promise<PaperSummary | null> {
-  const url = new URL(BASE_URL);
-  url.searchParams.set("id_list", arxivId);
+/** Search arXiv's free public API for papers matching a topic. */
+export async function searchArxiv(
+  query: string,
+  limit = 10,
+): Promise<PaperSummary[]> {
+  const trimmed = query.trim();
+  if (!trimmed) return [];
 
-  const res = await fetch(url.toString());
-  if (!res.ok) return null;
+  const terms = trimmed.split(/\s+/).map(escapeArxivTerm).filter(Boolean);
 
-  const xml = await res.text();
-  const entries = extractEntries(xml);
-  return entries.length > 0 ? parseEntry(entries[0]) : null;
+  // Single-word queries: phrase search is meaningless, just search the term.
+  if (terms.length <= 1) {
+    return fetchArxiv(`all:${terms[0] ?? trimmed}`, limit);
+  }
+
+  const andedTerms = terms.map((t) => `all:${t}`).join(" AND ");
+  return fetchArxiv(andedTerms, limit);
 }

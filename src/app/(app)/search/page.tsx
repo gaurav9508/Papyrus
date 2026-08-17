@@ -6,7 +6,7 @@ import { useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { PaperCard } from "@/components/papers/PaperCard";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { ButtonLight } from "@/components/ui/button-light";
 import type { PaperSummary } from "@/lib/types";
 import { Search as SearchIcon } from "lucide-react";
 
@@ -70,7 +70,13 @@ export default function SearchPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-8">
-      <h1 className="font-serif text-2xl text-[#e6e4dc]">Search Papers</h1>
+      <h1 className="font-serif text-4xl text-(--color-ink)">
+        Search <span className="italic text-(--color-blue)">Papers.</span>
+      </h1>
+      <p className="mt-2 text-sm text-neutral-500">
+        Find a paper on any topic and turn it into a guided implementation
+        notebook.
+      </p>
 
       <form onSubmit={handleSearch} className="mt-6 flex gap-2">
         <Input
@@ -78,13 +84,13 @@ export default function SearchPage() {
           onChange={(e) => setQuery(e.target.value)}
           placeholder="e.g. small language models, RLHF, vision transformers…"
         />
-        <Button type="submit" disabled={isSearching}>
+        <ButtonLight type="submit" variant="primary" disabled={isSearching}>
           <SearchIcon size={16} />
           {isSearching ? "Searching…" : "Search"}
-        </Button>
+        </ButtonLight>
       </form>
 
-      {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
+      {error && <p className="mt-3 text-sm text-red-500">{error}</p>}
 
       <div className="mt-6 flex flex-col gap-4">
         {results.map((paper) => (
@@ -98,9 +104,17 @@ export default function SearchPage() {
       </div>
 
       {results.length === 0 && !isSearching && (
-        <p className="mt-6 text-[#4a5460]">
-          Search for a topic to find related papers.
-        </p>
+        <div className="mt-16 flex flex-col items-center justify-center gap-2 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-(--color-cream-dim)">
+            <SearchIcon size={20} className="text-(--color-blue)" />
+          </div>
+          <p className="font-serif text-lg text-(--color-ink)">
+            Search for a topic to find related papers.
+          </p>
+          <p className="text-sm text-neutral-400">
+            Try “small language models,” “RLHF,” or “vision transformers.”
+          </p>
+        </div>
       )}
     </div>
   );

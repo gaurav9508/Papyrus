@@ -25,6 +25,38 @@ export const get = query({
   },
 });
 
+export const toggleSharing = mutation({
+  args: { sessionId: v.id("sessions") },
+  handler: async (ctx, args) => {
+    const userId = await requireUserId(ctx);
+    const session = await ctx.db.get(args.sessionId);
+    if (!session || session.userId !== userId)
+      throw new Error("Session not found.");
+
+    if (session.isPublic) {
+      await ctx.db.patch(args.sessionId, { isPublic: false });
+      return null;
+    }
+
+    const slug =
+      session.shareSlug ?? crypto.randomUUID().replace(/-/g, "").slice(0, 12);
+    await ctx.db.patch(args.sessionId, { isPublic: true, shareSlug: slug });
+    return slug;
+  },
+});
+
+export const getByShareSlug = query({
+  args: { slug: v.string() },
+  handler: async (ctx, args) => {
+    const session = await ctx.db
+      .query("sessions")
+      .withIndex("by_shareSlug", (q) => q.eq("shareSlug", args.slug))
+      .unique();
+    if (!session || !session.isPublic) return null;
+    return session;
+  },
+});
+
 /** Create a new pending session for a chosen paper (from search or upload). */
 export const create = mutation({
   args: {

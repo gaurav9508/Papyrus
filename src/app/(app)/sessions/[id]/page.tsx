@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import { useParams } from "next/navigation";
-import { useQuery, useConvexAuth } from "convex/react";
+import { useQuery, useMutation, useConvexAuth } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
 import type { Id } from "../../../../../convex/_generated/dataModel";
 import { NotebookViewer } from "@/components/notebook/NotebookViewer";
 import { NotebookChatPanel } from "@/components/notebook/NotebookChatPanel";
-import { Loader2, XCircle, MessageSquareText } from "lucide-react";
+import { Loader2, XCircle, MessageSquareText, Share2 } from "lucide-react";
 
 export default function SessionPage() {
   const params = useParams<{ id: string }>();
@@ -15,6 +15,7 @@ export default function SessionPage() {
 
   const [chatOpen, setChatOpen] = useState(true);
   const { isAuthenticated } = useConvexAuth();
+  const toggleSharing = useMutation(api.sessions.toggleSharing);
 
   const session = useQuery(
     api.sessions.get,
@@ -27,6 +28,17 @@ export default function SessionPage() {
 
   function handleDownload() {
     window.open(`/api/notebooks/${sessionId}/download`, "_blank");
+  }
+
+  async function handleShare() {
+    const slug = await toggleSharing({ sessionId });
+    if (slug) {
+      const url = `${window.location.origin}/share/${slug}`;
+      await navigator.clipboard.writeText(url);
+      alert(`Share link copied:\n${url}`);
+    } else {
+      alert("Sharing turned off.");
+    }
   }
 
   if (session === undefined) {
@@ -63,13 +75,22 @@ export default function SessionPage() {
         </div>
 
         {isReady && (
-          <button
-            onClick={() => setChatOpen((v) => !v)}
-            className="flex items-center gap-1.5 rounded-md border border-[#2a3541] bg-[#12181f] px-3 py-1.5 text-xs font-medium text-[#e6e4dc] transition-colors hover:border-[#3a4854]"
-          >
-            <MessageSquareText size={14} />
-            {chatOpen ? "Close chat" : "Ask the paper"}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleShare}
+              className="flex items-center gap-1.5 rounded-md border border-[#2a3541] bg-[#12181f] px-3 py-1.5 text-xs font-medium text-[#e6e4dc] transition-colors hover:border-[#3a4854]"
+            >
+              <Share2 size={14} />
+              {session.isPublic ? "Unshare" : "Share"}
+            </button>
+            <button
+              onClick={() => setChatOpen((v) => !v)}
+              className="flex items-center gap-1.5 rounded-md border border-[#2a3541] bg-[#12181f] px-3 py-1.5 text-xs font-medium text-[#e6e4dc] transition-colors hover:border-[#3a4854]"
+            >
+              <MessageSquareText size={14} />
+              {chatOpen ? "Close chat" : "Ask the paper"}
+            </button>
+          </div>
         )}
       </div>
 

@@ -36,10 +36,13 @@ export default defineSchema({
     paperPdfUrl: v.optional(v.string()),
     generationStartedAt: v.optional(v.number()),
     retryCount: v.optional(v.number()),
+    isPublic: v.optional(v.boolean()),
+    shareSlug: v.optional(v.string()),
   })
     .index("by_user", ["userId"])
     .index("by_user_and_status", ["userId", "status"])
-    .index("by_status", ["status"]),
+    .index("by_status", ["status"])
+    .index("by_shareSlug", ["shareSlug"]),
 
   // Ordered notebook cells belonging to a session.
   notebookBlocks: defineTable({

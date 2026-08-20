@@ -6,7 +6,7 @@ interface NotebookViewerProps {
   title: string;
   paperUrl?: string | null;
   blocks: NotebookBlockDoc[];
-  onDownload: () => void;
+  onDownload?: () => void;
 }
 
 /** Renders the full in-app walkthrough for a generated notebook, with a download-as-.ipynb action. */
@@ -33,10 +33,7 @@ export function NotebookViewer({
         {paperUrl && (
           <>
             {" "}
-            based on href={paperUrl}
-            target="_blank" rel="noopener noreferrer" className="text-amber-400
-            underline decoration-amber-400/40 underline-offset-2
-            hover:decoration-amber-400"
+            based on{" "}
             <a
               href={paperUrl}
               target="_blank"
@@ -50,15 +47,17 @@ export function NotebookViewer({
         .
       </p>
 
-      <div className="mt-4 flex justify-end">
-        <button
-          onClick={onDownload}
-          className="flex items-center gap-1.5 rounded-md border border-[#2a3541] bg-[#12181f] px-3 py-1.5 text-xs font-medium text-[#e6e4dc] transition-colors hover:border-[#3a4854]"
-        >
-          <Download size={14} />
-          Download .ipynb
-        </button>
-      </div>
+      {onDownload && (
+        <div className="mt-4 flex justify-end">
+          <button
+            onClick={onDownload}
+            className="flex items-center gap-1.5 rounded-md border border-[#2a3541] bg-[#12181f] px-3 py-1.5 text-xs font-medium text-[#e6e4dc] transition-colors hover:border-[#3a4854]"
+          >
+            <Download size={14} />
+            Download .ipynb
+          </button>
+        </div>
+      )}
 
       <div className="mt-8 border-t border-[#1e2732]" />
 

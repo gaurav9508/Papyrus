@@ -5,8 +5,44 @@ import { useQuery, useConvexAuth } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Id } from "../../../convex/_generated/dataModel";
 import { FileText, Send, Sparkles, X } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 const SUGGESTIONS = ["What's the core method?", "What should I try first?"];
+
+const markdownComponents = {
+  p: (props: any) => (
+    <p className="mb-2 last:mb-0 leading-relaxed" {...props} />
+  ),
+  strong: (props: any) => <strong className="font-semibold" {...props} />,
+  em: (props: any) => <em className="italic" {...props} />,
+  ul: (props: any) => (
+    <ul className="mb-2 ml-4 list-disc space-y-1 last:mb-0" {...props} />
+  ),
+  ol: (props: any) => (
+    <ol className="mb-2 ml-4 list-decimal space-y-1 last:mb-0" {...props} />
+  ),
+  li: (props: any) => <li className="leading-relaxed" {...props} />,
+  code: (props: any) => (
+    <code className="rounded bg-black/30 px-1 py-0.5 text-xs" {...props} />
+  ),
+  pre: (props: any) => (
+    <pre
+      className="mb-2 overflow-x-auto rounded-md bg-black/30 p-2 text-xs last:mb-0"
+      {...props}
+    />
+  ),
+  a: ({ children, ...props }: any) => (
+    <a
+      className="text-amber-400 underline underline-offset-2"
+      target="_blank"
+      rel="noopener noreferrer"
+      {...props}
+    >
+      {children}
+    </a>
+  ),
+};
 
 export function NotebookChatPanel({
   sessionId,
@@ -42,8 +78,8 @@ export function NotebookChatPanel({
   };
 
   return (
-    <div className="flex h-full flex-col bg-[#0b0f14]">
-      <div className="flex items-start justify-between px-6 pt-6">
+    <div className="flex h-full flex-col overflow-hidden bg-[#0b0f14]">
+      <div className="flex shrink-0 items-start justify-between px-6 pt-6">
         <div>
           <p className="text-xs font-medium uppercase tracking-widest text-[#6a7583]">
             Paper companion
@@ -67,7 +103,7 @@ export function NotebookChatPanel({
         </div>
       </div>
 
-      <div className="mx-6 mt-4 flex items-center gap-3 rounded-lg border border-[#1e2732] bg-[#12181f] px-4 py-3">
+      <div className="mx-6 mt-4 flex shrink-0 items-center gap-3 rounded-lg border border-[#1e2732] bg-[#12181f] px-4 py-3">
         <FileText size={16} className="text-[#6a7583]" />
         <div>
           <p className="text-sm font-medium text-[#e6e4dc]">{paperTitle}</p>
@@ -93,7 +129,12 @@ export function NotebookChatPanel({
                 : "mr-auto max-w-[85%] rounded-2xl bg-[#12181f] px-4 py-2 text-sm text-[#d8dde3]"
             }
           >
-            {m.content}
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={markdownComponents}
+            >
+              {m.content}
+            </ReactMarkdown>
           </div>
         ))}
         {sending && (
@@ -103,7 +144,7 @@ export function NotebookChatPanel({
         )}
       </div>
 
-      <div className="border-t border-[#1e2732] px-6 py-4">
+      <div className="shrink-0 border-t border-[#1e2732] px-6 py-4">
         <p className="mb-2 text-[10px] uppercase tracking-widest text-[#4a5460]">
           Try asking
         </p>

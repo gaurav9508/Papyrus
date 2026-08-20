@@ -22,6 +22,22 @@ export const listForSession = query({
   },
 });
 
+/** Public, unauthenticated version — only returns blocks if the session is publicly shared. */
+export const listForSessionPublic = query({
+  args: { sessionId: v.id("sessions") },
+  handler: async (ctx, args) => {
+    const session = await ctx.db.get(args.sessionId);
+    if (!session || !session.isPublic) return [];
+
+    const blocks = await ctx.db
+      .query("notebookBlocks")
+      .withIndex("by_session", (q) => q.eq("sessionId", args.sessionId))
+      .collect();
+
+    return blocks.sort((a, b) => a.order - b.order);
+  },
+});
+
 /** Bulk-insert generated blocks for a session (called once after LLM generation completes). */
 export const saveGenerated = mutation({
   args: {

@@ -3,14 +3,14 @@ import { auth } from "@clerk/nextjs/server";
 import { searchPapers } from "@/lib/api/paperSearch";
 
 export async function GET(req: NextRequest) {
-  const { userId } = await auth();
-  if (!userId) {
-    return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
-  }
+  await auth.protect();
 
   const query = req.nextUrl.searchParams.get("q");
   if (!query || query.trim().length === 0) {
-    return NextResponse.json({ error: "Missing query parameter 'q'." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Missing query parameter 'q'." },
+      { status: 400 },
+    );
   }
 
   try {
@@ -18,6 +18,9 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ results });
   } catch (err) {
     console.error("Paper search failed:", err);
-    return NextResponse.json({ error: "Failed to search papers." }, { status: 502 });
+    return NextResponse.json(
+      { error: "Failed to search papers." },
+      { status: 502 },
+    );
   }
 }

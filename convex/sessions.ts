@@ -1,6 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { requireUserId } from "./lib/auth";
+import { requireUserId, verifySystemSecret } from "./lib/auth";
 
 /** List the current user's sessions, most recent first — powers the dashboard sidebar. */
 export const listMine = query({
@@ -93,14 +93,6 @@ export const remove = mutation({
   },
 });
 
-// export const debugAuth = query({
-//   args: {},
-//   handler: async (ctx) => {
-//     const identity = await ctx.auth.getUserIdentity();
-//     return identity ?? "NO IDENTITY";
-//   },
-// });
-
 export const setStatusSystem = mutation({
   args: {
     sessionId: v.id("sessions"),
@@ -114,7 +106,7 @@ export const setStatusSystem = mutation({
     secret: v.string(),
   },
   handler: async (ctx, args) => {
-    if (args.secret !== process.env.INTERNAL_RETRY_SECRET) {
+    if (!verifySystemSecret(args.secret)) {
       throw new Error("Unauthorized.");
     }
     await ctx.db.patch(args.sessionId, {

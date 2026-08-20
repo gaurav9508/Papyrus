@@ -1,22 +1,12 @@
-"use client";
+import { auth } from "@clerk/nextjs/server";
+import { AppShell } from "./AppShell";
 
-import { usePathname } from "next/navigation";
-import { Navbar } from "@/components/layout/Navbar";
-import { useSyncUser } from "@/hooks/useSyncUser";
+export default async function AppLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  await auth.protect();
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
-  useSyncUser();
-  const pathname = usePathname();
-  const isDark = pathname?.startsWith("/sessions");
-
-  return (
-    <div
-      className={
-        isDark ? "min-h-screen bg-[#0b0f14]" : "min-h-screen bg-(--color-cream)"
-      }
-    >
-      <Navbar />
-      {children}
-    </div>
-  );
+  return <AppShell>{children}</AppShell>;
 }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 import { getAuthenticatedConvexClient } from "@/lib/convexServer";
 import { blocksToIpynb } from "@/lib/notebook/ipynb";
 import { api } from "../../../../../../convex/_generated/api";
@@ -6,8 +7,10 @@ import type { Id } from "../../../../../../convex/_generated/dataModel";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ sessionId: string }> }
+  { params }: { params: Promise<{ sessionId: string }> },
 ) {
+  await auth.protect();
+
   const { sessionId } = await params;
   const convex = await getAuthenticatedConvexClient();
 

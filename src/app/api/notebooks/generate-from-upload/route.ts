@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 import { getAuthenticatedConvexClient } from "@/lib/convexServer";
 import { generateNotebookFromUpload } from "@/lib/notebook/generate";
 import { indexPaperForChat } from "@/lib/rag/indexPaper";
@@ -7,6 +8,8 @@ import type { Id } from "../../../../../convex/_generated/dataModel";
 import type { PaperSummary } from "@/lib/types";
 
 export async function POST(req: NextRequest) {
+  await auth.protect();
+
   const convex = await getAuthenticatedConvexClient();
 
   const formData = await req.formData();

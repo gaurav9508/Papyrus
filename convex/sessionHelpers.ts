@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { internalQuery, internalMutation, query } from "./_generated/server";
+import { verifySystemSecret } from "./lib/auth";
 
 const STUCK_THRESHOLD_MS = 5 * 60 * 1000; // 5 min
 const MAX_RETRIES = 3;
@@ -23,7 +24,7 @@ export const listStuckGenerating = internalQuery({
 export const getForRetrySystem = query({
   args: { sessionId: v.id("sessions"), secret: v.string() },
   handler: async (ctx, args) => {
-    if (args.secret !== process.env.INTERNAL_RETRY_SECRET) {
+    if (!verifySystemSecret(args.secret)) {
       throw new Error("Unauthorized.");
     }
     const session = await ctx.db.get(args.sessionId);

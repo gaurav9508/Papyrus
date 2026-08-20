@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useUser } from "@clerk/nextjs";
-import { useMutation } from "convex/react";
+import { useConvexAuth, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 
 /**
@@ -11,12 +11,13 @@ import { api } from "../../convex/_generated/api";
  */
 export function useSyncUser() {
   const { user, isSignedIn } = useUser();
+  const { isAuthenticated } = useConvexAuth();
   const syncUser = useMutation(api.users.syncUser);
 
   useEffect(() => {
-    if (isSignedIn && user) {
+    if (isAuthenticated && isSignedIn && user) {
       const email = user.primaryEmailAddress?.emailAddress ?? "";
       syncUser({ email, name: user.fullName ?? undefined });
     }
-  }, [isSignedIn, user, syncUser]);
+  }, [isAuthenticated, isSignedIn, user, syncUser]);
 }

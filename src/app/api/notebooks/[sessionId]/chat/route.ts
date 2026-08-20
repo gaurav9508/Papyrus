@@ -9,9 +9,7 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ sessionId: string }> },
 ) {
-  const { userId } = await auth();
-  if (!userId)
-    return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
+  await auth.protect();
 
   const { message } = (await req.json()) as { message?: string };
   if (!message?.trim())

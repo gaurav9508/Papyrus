@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "convex/react";
+import { useQuery, useConvexAuth } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Id } from "../../../convex/_generated/dataModel";
 import { FileText, Send, Sparkles, X } from "lucide-react";
@@ -19,7 +19,11 @@ export function NotebookChatPanel({
 }) {
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
-  const messages = useQuery(api.chatMessages.listMine, { sessionId });
+  const { isAuthenticated } = useConvexAuth();
+  const messages = useQuery(
+    api.chatMessages.listMine,
+    isAuthenticated ? { sessionId } : "skip",
+  );
 
   const handleSend = async (text?: string) => {
     const message = (text ?? input).trim();

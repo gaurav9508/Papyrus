@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 import { getAuthenticatedConvexClient } from "@/lib/convexServer";
 import { generateNotebookFromUrl } from "@/lib/notebook/generate";
 import { indexPaperForChat } from "@/lib/rag/indexPaper";
@@ -12,6 +13,8 @@ interface RequestBody {
 }
 
 export async function POST(req: NextRequest) {
+  await auth.protect();
+
   const convex = await getAuthenticatedConvexClient();
   const { sessionId, paper } = (await req.json()) as RequestBody;
 

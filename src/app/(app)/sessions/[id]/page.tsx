@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useParams } from "next/navigation";
-import { useQuery } from "convex/react";
+import { useQuery, useConvexAuth } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
 import type { Id } from "../../../../../convex/_generated/dataModel";
 import { NotebookViewer } from "@/components/notebook/NotebookViewer";
@@ -14,11 +14,15 @@ export default function SessionPage() {
   const sessionId = params.id as Id<"sessions">;
 
   const [chatOpen, setChatOpen] = useState(true);
+  const { isAuthenticated } = useConvexAuth();
 
-  const session = useQuery(api.sessions.get, { sessionId });
+  const session = useQuery(
+    api.sessions.get,
+    isAuthenticated ? { sessionId } : "skip",
+  );
   const blocks = useQuery(
     api.notebooks.listForSession,
-    session?.status === "ready" ? { sessionId } : "skip",
+    isAuthenticated && session?.status === "ready" ? { sessionId } : "skip",
   );
 
   function handleDownload() {

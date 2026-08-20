@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useConvexAuth } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Id } from "../../../convex/_generated/dataModel";
@@ -61,6 +61,12 @@ export function NotebookChatPanel({
     isAuthenticated ? { sessionId } : "skip",
   );
 
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, sending]);
+
   const handleSend = async (text?: string) => {
     const message = (text ?? input).trim();
     if (!message || sending) return;
@@ -113,7 +119,7 @@ export function NotebookChatPanel({
         </div>
       </div>
 
-      <div className="flex-1 space-y-3 overflow-y-auto px-6 py-4">
+      <div className="themed-scroll flex-1 space-y-3 overflow-y-auto px-6 py-4">
         {messages?.length === 0 && (
           <div className="rounded-lg bg-[#12181f] px-4 py-3 text-sm leading-relaxed text-[#b8bfc7]">
             I'm grounded in this paper. Ask me about the method, the code, or
@@ -142,6 +148,7 @@ export function NotebookChatPanel({
             Thinking…
           </div>
         )}
+        <div ref={bottomRef} />
       </div>
 
       <div className="shrink-0 border-t border-[#1e2732] px-6 py-4">

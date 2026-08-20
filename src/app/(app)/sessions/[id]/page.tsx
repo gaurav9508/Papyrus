@@ -60,9 +60,9 @@ export default function SessionPage() {
   const isReady = session.status === "ready" && blocks;
 
   return (
-    <div className="min-h-screen bg-[#0b0f14]">
+    <div className="flex h-screen flex-col bg-[#0b0f14]">
       {/* Top bar */}
-      <div className="flex items-center justify-between border-b border-[#1e2732] px-6 py-3">
+      <div className="flex shrink-0 items-center justify-between border-b border-[#1e2732] px-6 py-3">
         <div className="flex items-center gap-2 text-xs text-[#5c6b78]">
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
           <span className="text-[#8892a0]">
@@ -94,28 +94,40 @@ export default function SessionPage() {
         )}
       </div>
 
-      {(session.status === "pending" || session.status === "generating") && (
-        <div className="mx-6 my-8 flex items-center gap-3 rounded-lg border border-[#1e2732] bg-[#12181f] p-8 text-[#8892a0]">
-          <Loader2 className="animate-spin" size={20} />
-          Generating your step-by-step notebook — this can take a minute…
-        </div>
-      )}
+      {(session.status === "pending" ||
+        session.status === "generating" ||
+        session.status === "failed") && (
+        <div className="themed-scroll flex-1 overflow-y-auto">
+          {(session.status === "pending" ||
+            session.status === "generating") && (
+            <div className="mx-6 my-8 flex items-center gap-3 rounded-lg border border-[#1e2732] bg-[#12181f] p-8 text-[#8892a0]">
+              <Loader2 className="animate-spin" size={20} />
+              Generating your step-by-step notebook — this can take a minute…
+            </div>
+          )}
 
-      {session.status === "failed" && (
-        <div className="mx-6 my-8 flex items-start gap-3 rounded-lg border border-red-900/40 bg-red-950/30 p-6 text-red-300">
-          <XCircle size={20} className="mt-0.5 shrink-0" />
-          <div>
-            <p className="font-medium">Notebook generation failed.</p>
-            {session.errorMessage && (
-              <p className="text-sm text-red-400">{session.errorMessage}</p>
-            )}
-          </div>
+          {session.status === "failed" && (
+            <div className="mx-6 my-8 flex items-start gap-3 rounded-lg border border-red-900/40 bg-red-950/30 p-6 text-red-300">
+              <XCircle size={20} className="mt-0.5 shrink-0" />
+              <div>
+                <p className="font-medium">Notebook generation failed.</p>
+                {session.errorMessage && (
+                  <p className="text-sm text-red-400">{session.errorMessage}</p>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
       {isReady && (
-        <div className="flex">
-          <div className={chatOpen ? "w-full md:w-3/5" : "w-full"}>
+        <div className="flex flex-1 overflow-hidden">
+          <div
+            className={
+              (chatOpen ? "w-full md:w-3/5" : "w-full") +
+              " themed-scroll overflow-y-auto"
+            }
+          >
             <NotebookViewer
               title={session.title}
               paperUrl={session.paperExternalUrl}
@@ -125,7 +137,7 @@ export default function SessionPage() {
           </div>
 
           {chatOpen && (
-            <div className="hidden md:block md:w-2/5 border-l border-[#1e2732]">
+            <div className="hidden md:block md:w-2/5 border-l border-[#1e2732] overflow-hidden">
               <NotebookChatPanel
                 sessionId={sessionId}
                 paperTitle={session.title}

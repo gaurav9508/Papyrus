@@ -158,3 +158,32 @@ export async function generateText(prompt: string): Promise<string> {
   if (!text) throw new Error("Gemini returned an empty response.");
   return text.trim();
 }
+
+export async function summarizeForExport(input: {
+  paperTitle: string;
+  notebookBlocks?: { type: string; content: string }[];
+  chatMessages?: { role: "user" | "assistant"; content: string }[];
+  scope: "notebook" | "chat" | "both";
+}): Promise<string> {
+  const notebookText =
+    input.notebookBlocks?.map((b) => `[${b.type}] ${b.content}`).join("\n\n") ??
+    "";
+
+  const chatText =
+    input.chatMessages?.map((m) => `${m.role}: ${m.content}`).join("\n") ?? "";
+
+  const sourceText =
+    input.scope === "notebook"
+      ? notebookText
+      : input.scope === "chat"
+        ? chatText
+        : `NOTEBOOK:\n${notebookText}\n\nCHAT:\n${chatText}`;
+
+  const prompt = `You are summarizing a learning session on the paper "${input.paperTitle}".
+Produce a clear, well-structured summary covering: key concepts explained, implementation steps taken, and any Q&A insights from chat. Use markdown-style headers and bullet points. Keep it concise but complete.
+
+SOURCE CONTENT:
+${sourceText}`;
+
+  return generateText(prompt);
+}

@@ -237,3 +237,29 @@ export const regenerateBlock = action({
     }
   },
 });
+
+/** Read-only bundle (session + blocks + chat) for PDF summary export. Ownership-checked. */
+export const getExportDataForOwner = query({
+  args: { sessionId: v.id("sessions") },
+  handler: async (ctx, args) => {
+    const userId = await requireUserId(ctx);
+    const session = await ctx.db.get(args.sessionId);
+    if (!session || session.userId !== userId) return null;
+
+    const blocks = await ctx.db
+      .query("notebookBlocks")
+      .withIndex("by_session", (q) => q.eq("sessionId", args.sessionId))
+      .collect();
+
+    const messages = await ctx.db
+      .query("chatMessages")
+      .withIndex("by_session", (q) => q.eq("sessionId", args.sessionId))
+      .collect();
+
+    return {
+      session,
+      blocks: blocks.sort((a, b) => a.order - b.order),
+      messages,
+    };
+  },
+});

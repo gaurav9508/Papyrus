@@ -54,3 +54,8 @@ export interface NotebookGenerationResult {
   title: string;
   blocks: Omit<NotebookBlock, "order">[];
 }
+
+export interface SessionSummaryRequest {
+  sessionId: string;
+  scope: "notebook" | "chat" | "both";
+}

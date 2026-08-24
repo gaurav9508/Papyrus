@@ -51,3 +51,19 @@ export const getSessionForOwnerCheck = internalQuery({
   ),
   handler: async (ctx, args) => ctx.db.get(args.sessionId),
 });
+
+export const getSessionExportData = internalQuery({
+  args: { sessionId: v.id("sessions") },
+  handler: async (ctx, { sessionId }) => {
+    const session = await ctx.db.get(sessionId);
+    const blocks = await ctx.db
+      .query("notebookBlocks")
+      .withIndex("by_session", (q) => q.eq("sessionId", sessionId))
+      .collect();
+    const messages = await ctx.db
+      .query("chatMessages")
+      .withIndex("by_session", (q) => q.eq("sessionId", sessionId))
+      .collect();
+    return { session, blocks, messages };
+  },
+});

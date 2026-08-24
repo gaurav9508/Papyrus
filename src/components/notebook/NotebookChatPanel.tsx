@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useQuery, useConvexAuth } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Id } from "../../../convex/_generated/dataModel";
-import { FileText, Send, Sparkles, X } from "lucide-react";
+import { FileText, Send, Sparkles, X, Download } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -44,6 +44,13 @@ const markdownComponents = {
   ),
 };
 
+/** Matches user messages that are asking for a summary/export, e.g. "summarize this", "summarise the chat". */
+function isSummaryRequest(text: string): boolean {
+  return /^(summari[sz]e|summary|export( this)?( as)? pdf|download( a)? summary)/i.test(
+    text.trim(),
+  );
+}
+
 export function NotebookChatPanel({
   sessionId,
   paperTitle,
@@ -55,6 +62,7 @@ export function NotebookChatPanel({
 }) {
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const { isAuthenticated } = useConvexAuth();
   const messages = useQuery(
     api.chatMessages.listMine,
@@ -67,9 +75,41 @@ export function NotebookChatPanel({
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, sending]);
 
+  async function handleExportSummary(scope: "notebook" | "chat" | "both") {
+    if (isExporting) return;
+    setIsExporting(true);
+    try {
+      const res = await fetch(`/api/notebooks/${sessionId}/summary`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ scope }),
+      });
+      if (!res.ok) throw new Error("Export failed");
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `summary-${sessionId}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setIsExporting(false);
+    }
+  }
+
   const handleSend = async (text?: string) => {
     const message = (text ?? input).trim();
     if (!message || sending) return;
+
+    // Chat-triggered variant: typing a summarize/export request downloads the PDF
+    // instead of hitting the RAG chat endpoint.
+    if (isSummaryRequest(message)) {
+      setInput("");
+      handleExportSummary("both");
+      return;
+    }
+
     setInput("");
     setSending(true);
     try {
@@ -95,6 +135,15 @@ export function NotebookChatPanel({
           </h2>
         </div>
         <div className="flex items-center gap-3">
+          <button
+            onClick={() => handleExportSummary("both")}
+            disabled={isExporting}
+            title="Summarize this session and download as PDF"
+            className="flex items-center gap-1.5 rounded-full border border-[#2a3541] px-3 py-1 text-[10px] font-medium uppercase tracking-widest text-[#b8bfc7] hover:border-amber-400 hover:text-amber-400 disabled:opacity-40"
+          >
+            <Download size={12} />
+            {isExporting ? "Exporting…" : "Export PDF"}
+          </button>
           <span className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-widest text-emerald-400">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
             Live
@@ -123,7 +172,7 @@ export function NotebookChatPanel({
         {messages?.length === 0 && (
           <div className="rounded-lg bg-[#12181f] px-4 py-3 text-sm leading-relaxed text-[#b8bfc7]">
             I'm grounded in this paper. Ask me about the method, the code, or
-            what to try next.
+            what to try next — or type "summarize" to get a PDF recap.
           </div>
         )}
         {messages?.map((m) => (
@@ -146,6 +195,11 @@ export function NotebookChatPanel({
         {sending && (
           <div className="mr-auto max-w-[85%] rounded-2xl bg-[#12181f] px-4 py-2 text-sm text-[#6a7583]">
             Thinking…
+          </div>
+        )}
+        {isExporting && (
+          <div className="mr-auto max-w-[85%] rounded-2xl bg-[#12181f] px-4 py-2 text-sm text-[#6a7583]">
+            Generating your PDF summary…
           </div>
         )}
         <div ref={bottomRef} />
@@ -172,7 +226,7 @@ export function NotebookChatPanel({
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSend()}
-            placeholder="Ask about this paper…"
+            placeholder="Ask about this paper… or type 'summarize'"
             className="flex-1 bg-transparent text-sm text-[#e6e4dc] placeholder:text-[#4a5460] focus:outline-none"
           />
           <button
@@ -185,7 +239,8 @@ export function NotebookChatPanel({
           </button>
         </div>
         <p className="mt-2 text-[10px] text-[#4a5460]">
-          ⏎ Enter to send · answers cite the paper
+          ⏎ Enter to send · answers cite the paper · type "summarize" to export
+          a PDF
         </p>
       </div>
     </div>

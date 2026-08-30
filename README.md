@@ -10,7 +10,7 @@ as a revisitable session tied to your account.
 - **Clerk** — authentication
 - **Convex** — realtime database (sessions, notebook cells, users)
 - **Semantic Scholar + arXiv** — free paper search APIs
-- **Gemini 2.5 Flash** (free tier) — notebook generation
+- **Gemini 3.5 Flash** (free tier) — notebook generation
 
 ## Project structure
 
